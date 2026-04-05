@@ -3,9 +3,8 @@ import pandas as pd
 import numpy as np
 import joblib
 
-# ================================================================
-# LOAD MODEL — uses rf_model.pkl and tfidf.pkl (no class needed)
-# ================================================================
+# Loading Model
+
 @st.cache_resource
 def load_model():
     model = joblib.load("rf_model.pkl")
@@ -32,8 +31,11 @@ def engineer_features(df):
     else:
         d["favourites_count"] = pd.to_numeric(d[fav_col], errors="coerce").fillna(0).astype(int)
 
-    d["verified"] = d["verified"].apply(
-        lambda x: 1 if str(x).strip().upper() in ["TRUE", "1"] else 0)
+    if "verified" not in d.columns:
+        d["verified"] = 0
+    else:
+        d["verified"] = d["verified"].apply(
+        lambda x: 1 if str(x).strip().upper() in ["TRUE", "1", "TRUE"] else 0)
 
     bag = (r'bot|b0t|cannabis|tweet me|mishear|follow me|updates every|gorilla|yes_ofc|forget'
            r'|expos|kill|clit|bbb|butt|fuck|XXX|sex|truthe|fake|anony|free|virus|funky|RNA'
@@ -53,7 +55,10 @@ def engineer_features(df):
     d["username_digits"]  = d["screen_name"].apply(lambda x: sum(c.isdigit() for c in str(x)))
     d["username_len"]     = d["screen_name"].apply(lambda x: len(str(x)))
     d["username_has_bot"] = d["screen_name"].str.contains("bot", case=False, na=False).astype(int)
-    d["default_profile_image"] = d["default_profile_image"].apply(
+    if "default_profile_image" not in d.columns:
+        d["default_profile_image"] = 0
+    else:
+        d["default_profile_image"] = d["default_profile_image"].apply(
         lambda x: 1 if str(x).strip().upper() in ["TRUE", "1"] else 0)
 
     bio_text     = d["description"].fillna("")
