@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 import joblib
 
-# Loading Model
+
+# LOADING MODEL 
 
 @st.cache_resource
 def load_model():
@@ -13,29 +14,20 @@ def load_model():
 
 model, tfidf = load_model()
 
-# ================================================================
 # FEATURE ENGINEERING
-# ================================================================
+
 def engineer_features(df):
     d = df.copy()
 
-    
-    for col in ["followers_count", "friends_count", "listed_count", "statuses_count"]:
-        if col not in d.columns:
-            d[col] = 0
-        d[col] = pd.to_numeric(d[col], errors="coerce").fillna(0).astype(int)
-
+    d["followers_count"]  = pd.to_numeric(d.get("followers_count",  0), errors="coerce").fillna(0).astype(int)
+    d["friends_count"]    = pd.to_numeric(d.get("friends_count",    0), errors="coerce").fillna(0).astype(int)
+    d["listed_count"]     = pd.to_numeric(d.get("listed_count",     0), errors="coerce").fillna(0).astype(int)
+    d["statuses_count"]   = pd.to_numeric(d.get("statuses_count",   0), errors="coerce").fillna(0).astype(int)
     fav_col = "favourites_count" if "favourites_count" in d.columns else "favorites_count"
-    if fav_col not in d.columns:
-        d["favourites_count"] = 0
-    else:
-        d["favourites_count"] = pd.to_numeric(d[fav_col], errors="coerce").fillna(0).astype(int)
+    d["favourites_count"] = pd.to_numeric(d.get(fav_col, 0), errors="coerce").fillna(0).astype(int)
 
-    if "verified" not in d.columns:
-        d["verified"] = 0
-    else:
-        d["verified"] = d["verified"].apply(
-        lambda x: 1 if str(x).strip().upper() in ["TRUE", "1", "TRUE"] else 0)
+    d["verified"] = d["verified"].apply(
+        lambda x: 1 if str(x).strip().upper() in ["TRUE", "1"] else 0)
 
     bag = (r'bot|b0t|cannabis|tweet me|mishear|follow me|updates every|gorilla|yes_ofc|forget'
            r'|expos|kill|clit|bbb|butt|fuck|XXX|sex|truthe|fake|anony|free|virus|funky|RNA'
@@ -55,10 +47,7 @@ def engineer_features(df):
     d["username_digits"]  = d["screen_name"].apply(lambda x: sum(c.isdigit() for c in str(x)))
     d["username_len"]     = d["screen_name"].apply(lambda x: len(str(x)))
     d["username_has_bot"] = d["screen_name"].str.contains("bot", case=False, na=False).astype(int)
-    if "default_profile_image" not in d.columns:
-        d["default_profile_image"] = 0
-    else:
-        d["default_profile_image"] = d["default_profile_image"].apply(
+    d["default_profile_image"] = d["default_profile_image"].apply(
         lambda x: 1 if str(x).strip().upper() in ["TRUE", "1"] else 0)
 
     bio_text     = d["description"].fillna("")
@@ -79,11 +68,10 @@ def engineer_features(df):
 
     return d[feature_cols].fillna(0)
 
-# ================================================================
 # PAGE CONFIG
-# ================================================================
-st.set_page_config(page_title="Twitter Bot Detector", page_icon="🤖", layout="wide")
-st.title("🤖 Twitter Bot Detector")
+
+st.set_page_config(page_title="Twitter Bot Detector", layout="wide")
+st.title(" Twitter Bot Detector")
 st.markdown("Upload a CSV of Twitter accounts to detect how many are bots.")
 
 with st.sidebar:
@@ -98,9 +86,9 @@ with st.sidebar:
     st.metric("Validation Accuracy", "91.4%")
     st.metric("ROC-AUC", "96.7%")
 
-# ================================================================
+
 # UPLOAD + PREDICT
-# ================================================================
+
 uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
 
 if uploaded_file:
@@ -119,7 +107,7 @@ if uploaded_file:
 
                 df["predicted_bot"]   = preds
                 df["bot_probability"] = (probs * 100).round(1)
-                df["verdict"]         = df["predicted_bot"].map({1: "🤖 Bot", 0: "✅ Human"})
+                df["verdict"]         = df["predicted_bot"].map({1: " Bot", 0: " Human"})
 
                 total       = len(df)
                 bot_count   = int(df["predicted_bot"].sum())
@@ -127,17 +115,17 @@ if uploaded_file:
                 bot_pct     = round(bot_count / total * 100, 1)
 
                 st.divider()
-                st.subheader("📊 Results")
+                st.subheader("Results")
                 c1, c2, c3, c4 = st.columns(4)
                 c1.metric("Total",        total)
-                c2.metric("🤖 Bots",      bot_count)
-                c3.metric("✅ Humans",     human_count)
+                c2.metric(" Bots",      bot_count)
+                c3.metric("Humans",     human_count)
                 c4.metric("Bot %",        f"{bot_pct}%")
 
-                st.subheader("🎯 Bot probability distribution")
+                st.subheader("Bot probability distribution")
                 st.bar_chart(df["bot_probability"].value_counts().sort_index())
 
-                st.subheader("📋 Account breakdown")
+                st.subheader(" Account breakdown")
                 filter_opt = st.radio("Show:", ["All", "Bots only", "Humans only"], horizontal=True)
                 filtered = df.copy()
                 if filter_opt == "Bots only":
@@ -163,4 +151,4 @@ if uploaded_file:
             except Exception as e:
                 st.error(f"Error: {e}")
 else:
-    st.info("👆 Upload a CSV file to get started")
+    st.info(" Upload a CSV file to get started")
