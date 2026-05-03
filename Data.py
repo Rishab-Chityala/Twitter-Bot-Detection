@@ -8,7 +8,7 @@ train = pd.read_csv(
 )
 train = train.rename(columns={"ï»¿id": "id", "bot": "label"})
 
-# Test data (tab-separated)
+# Test data 
 test = pd.read_csv(
     "test_data_4_students.csv",
     encoding="latin-1",

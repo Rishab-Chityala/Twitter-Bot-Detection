@@ -9,9 +9,9 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score
 
-# ================================================================
+
 # FEATURE ENGINEERING
-# ================================================================
+
 def engineer_features(df, tfidf, fit_tfidf=False):
     d = df.copy()
 
@@ -68,9 +68,9 @@ def engineer_features(df, tfidf, fit_tfidf=False):
     return d[feature_cols].fillna(0)
 
 
-# ================================================================
+
 # MAIN
-# ================================================================
+
 if __name__ == "__main__":
     start = time.time()
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         train_df, test_size=0.2, random_state=42, stratify=train_df["bot"]
     )
 
-    # Create tfidf and model
+    #  tfidf and model
     tfidf = TfidfVectorizer(max_features=50, stop_words="english")
     model = RandomForestClassifier(
         n_estimators=200, max_depth=15,
@@ -115,9 +115,8 @@ if __name__ == "__main__":
     y_all = train_df["bot"].astype(int)
     model.fit(X_all, y_all)
 
-    # ✅ Save SEPARATELY — no class, no pickle issues
+   
     joblib.dump(model, "rf_model.pkl")
     joblib.dump(tfidf, "tfidf.pkl")
-    print("✅ Saved: rf_model.pkl and tfidf.pkl")
+    print(" Saved: rf_model.pkl and tfidf.pkl")
 
-    print(f"⏱ Done in {time.time()-start:.1f}s")
